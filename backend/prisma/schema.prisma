@@ -1,0 +1,246 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  PROJECT_MANAGER
+  REVIEWER
+  WORKER
+}
+
+enum AccountStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+  UNDER_REVIEW
+  PENDING_VERIFICATION
+
+}
+
+enum PayoutMethod {
+  NONE
+  PAYPAL
+  BANK
+  STRIPE
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED_REVISION_NEEDED
+  REJECTED_PERMANENT
+  PAID
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @db.Text
+  status      String   @default("ACTIVE") // ACTIVE, PAUSED, COMPLETED
+  createdAt   DateTime @default(now())
+  tasks       Task[]
+  isAssessment    Boolean @default(false)
+assessmentData  Json?   // Will store: [{ q: "...", options: [".."], correct: 0 }]
+}
+
+model Task {
+  id           String       @id @default(uuid())
+  projectId    String
+  project      Project      @relation(fields: [projectId], references: [id])
+  title        String
+  instruction  String       @db.Text
+  type         String       // PREFERENCE_RANKING, TEXT_CLASSIFICATION, SENTIMENT
+  payRate      Decimal      @db.Decimal(10, 2)
+  content      Json         // Flexible storage for different task needs
+  status       String       @default("AVAILABLE")
+  createdAt    DateTime     @default(now())
+  submissions  Submission[]
+}
+
+
+
+model Submission {
+  id           String   @id @default(uuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id])
+  workerId     String
+  worker       User     @relation("WorkerSubmissions", fields: [workerId], references: [id])
+  answers      Json     // The worker's response
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminFeedback    String?          @db.Text
+  revisionCount    Int              @default(0)
+  durationSeconds  Int          @default(0)
+  isSuspicious     Boolean      @default(false)
+  submittedAt  DateTime @default(now())
+  payoutCycleId    String?
+  payoutCycle      PayoutCycle?     @relation(fields: [payoutCycleId], references: [id])
+  review       Review?
+    supportTicket    SupportTicket?
+
+}
+model PayoutCycle {
+  id             String       @id @default(uuid())
+  snapshotDate   DateTime     @default(now())
+  status         String       @default("OPEN") // OPEN, PROCESSING, COMPLETED
+  submissions    Submission[]
+    transactions   Transaction[]   // NEW
+}
+
+model Review {
+  id            String      @id @default(uuid())
+  submissionId  String      @unique
+  submission    Submission  @relation(fields: [submissionId], references: [id])
+  reviewerId    String
+  score         Int         // 1 to 5
+    isRedFlag     Boolean     @default(false) // Low effort/Gibberish
+
+  feedback      String?     @db.Text
+  status        String      // APPROVED or REJECTED
+  reviewedAt    DateTime    @default(now())
+}
+
+model Transaction {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  amount        Decimal  @db.Decimal(10, 2)
+    carryForward  Decimal  @default(0.00) @db.Decimal(10, 2)
+
+  type          String   // TASK_PAYMENT, WITHDRAWAL
+  status        String   @default("PENDING") // PENDING, PAID
+  description   String?
+  payoutDate    DateTime? // Admin will manually set this
+  createdAt     DateTime @default(now())
+  payoutCycleId String?
+  payoutCycle   PayoutCycle? @relation(fields: [payoutCycleId], references: [id])   // NEW
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          Role           @default(WORKER)
+  status        AccountStatus  @default(UNVERIFIED)
+  isEmailVerified   Boolean        @default(false)
+  verificationCode  String?        // Stores the 6-digit OTP
+  verificationExpires DateTime?    // Code expires after 10-15 mins
+  googleId          String?        @unique // <--- ADD THIS LINE
+
+  resetCode         String?        // Stores the password reset OTP
+  resetExpires      DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  workerProfile WorkerProfile?
+  wallet        Wallet?
+   submissions   Submission[]  @relation("WorkerSubmissions")
+  transactions  Transaction[]
+  announcements Announcement[]
+  signedNDA         DateTime?
+  signedContract    DateTime?
+  onboardingIP      String?
+  referralCode      String         @unique @default(cuid())
+  referredBy        String?
+  referralBonusPaid Boolean        @default(false) // <--- ADD THIS LINE
+
+    supportTickets    SupportTicket[]
+      messages      Message[]      @relation("UserMessages")
+passedAssessment  Boolean @default(false)
+
+}
+
+model WorkerProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id])
+linkedinUrl       String?
+  githubUrl         String?
+  category          String?  // e.g., Software Engineering
+  experienceYears   String?  // e.g., 1-3 years
+  primaryLanguage   String?
+  university        String?
+  country           String?
+  bio               String?  @db.Text
+  accuracyScore     Float    @default(0.0)
+  tasksCompleted    Int      @default(0)
+  level             Int      @default(1)
+    totalAudits       Int      @default(0)
+    availability      String?  // e.g., "40-60 hrs/week"
+   resumeUrl         String?  @db.LongText
+  profilePicture    String?  @db.LongText 
+    warningCount      Int      @default(0) // Add this
+    governmentIdFrontUrl String?  @db.LongText // Front of ID
+  governmentIdBackUrl  String?  @db.LongText // Back of ID
+  faceVerificationUrl  String?  @db.LongText // Face Pulse
+
+
+}
+
+model Wallet {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user              User     @relation(fields: [userId], references: [id])
+  availableBalance Decimal  @default(0.00) @db.Decimal(10, 2)
+  pendingBalance   Decimal  @default(0.00) @db.Decimal(10, 2)
+  totalWithdrawn   Decimal  @default(0.00) @db.Decimal(10, 2)
+  payoutMethod     PayoutMethod @default(NONE)
+  payoutDetails    Json?        // Stores PayPal Email or Bank/Swift details
+
+}
+model SystemSetting {
+  id           String @id @default(uuid())
+  settingKey   String @unique
+  settingValue String
+}
+model SupportTicket {
+  id            String      @id @default(uuid())
+  submissionId  String?     @unique // <--- ADD THE ? HERE
+  submission    Submission? @relation(fields: [submissionId], references: [id]) // <--- ADD THE ? HERE
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  subject       String
+  message       String      @db.Text
+  adminReply    String?     @db.Text
+  status        String      @default("OPEN") // OPEN, RESOLVED
+  createdAt     DateTime    @default(now())
+}
+model Channel {
+  id          String    @id @default(uuid())
+  name        String    @unique 
+  projectId   String?   @unique
+  isLocked    Boolean   @default(true) 
+  messages    Message[]
+  createdAt   DateTime  @default(now())
+}
+model Message {
+  id          String     @id @default(uuid())
+  content     String     @db.Text
+  channelId   String
+  channel     Channel    @relation(fields: [channelId], references: [id])
+  authorId    String
+  author      User       @relation("UserMessages", fields: [authorId], references: [id]) // Add the name "UserMessages"
+  isPinned    Boolean    @default(false)
+  reactions   Json?      
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}

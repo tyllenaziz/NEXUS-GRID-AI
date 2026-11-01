@@ -1,0 +1,257 @@
+ NexusGrid
+Subject: Scalable Human-in-the-Loop (HITL) Platform for AI Alignment
+Developer: [Your Name]
+Date: August 2026
+1. Executive Summary
+NexusGrid is a full-stack ecosystem designed to facilitate Reinforcement Learning from Human Feedback (RLHF). The platform provides a secure environment where expert contributors (Workers) perform high-fidelity data labeling and AI model evaluation, while platform staff (Admins) manage data integrity, biometric verification, and multi-channel financial disbursements.
+2. Problem Statement
+Modern Large Language Models (LLMs) require massive amounts of human-verified data to reduce hallucinations and improve safety. Current solutions often lack:
+Robust Fraud Prevention: High risk of botting and account sharing.
+Security in Financial Data: Vulnerable payout settings.
+Scalable Management: Difficulties in auditing thousands of micro-tasks.
+NexusGrid solves these using Biometric Identity Pulses, Encrypted Identity Vaults, and a Double-Locked Referral Protocol.
+3. Technical Stack
+Layer	Technology
+Language	TypeScript (ESM)
+Frontend Framework	Next.js 15+ (App Router)
+Backend Framework	Node.js / Express.js
+Database (ORM)	Prisma ORM
+Database (Host)	Aiven (Managed MySQL 8.0)
+API Architecture	RESTful API
+Authentication	JWT (Cookie-based), Google OAuth 2.0
+Email Service	Resend (Identity-based SMTP)
+Deployment (API)	Render (Auto-deploy via GitHub)
+Deployment (Web)	Vercel (Edge-optimized)
+4. System File Directory (The Blueprint)
+A. Backend (Core Engine)
+backend/
+├── prisma/
+│ └── schema.prisma (Database models & relations)
+├── src/
+│ ├── index.ts (Entry point, CORS settings, Middleware)
+│ ├── lib/
+│ │ └── prisma.ts (Centralized DB Client)
+│ ├── middleware/
+│ │ ├── authMiddleware.ts (JWT Session validation)
+│ │ └── roleMiddleware.ts (RBAC: Worker vs Admin gate)
+│ ├── controllers/
+│ │ └── authController.ts (Login, Register, Google OAuth, OTP logic)
+│ ├── routes/
+│ │ ├── adminRoutes.ts (Task creation, Payout snapshots, Node management)
+│ │ ├── authRoutes.ts (Authentication endpoints)
+│ │ ├── chatRoutes.ts (Real-time broadcast & channel logic)
+│ │ └── userRoutes.ts (Task submission, Wallet Vault, History)
+│ └── services/
+│ └── emailService.ts (Transactional emails: Finance, Security, Support)
+└── .env (Environment secrets)
+B. Worker Frontend (The Grid)
+frontend/
+├── src/app/
+│ ├── layout.tsx (Root theme wrapper & Google Script loader)
+│ ├── page.tsx (Landing Page)
+│ ├── login/page.tsx (Auth with Google & Trusted Device logic)
+│ ├── register/page.tsx (Signup with Referral capture)
+│ ├── verify/page.tsx (Email OTP entry)
+│ ├── onboarding/page.tsx (NDA & Contract electronic signing)
+│ ├── dashboard/
+│ │ ├── layout.tsx (Session guarding & Sidebar)
+│ │ ├── page.tsx (Market Overview & Accuracy Analytics)
+│ │ ├── chat/page.tsx (Project-based communication)
+│ │ ├── history/page.tsx (Audit ledger)
+│ │ ├── wallet/page.tsx (The Identity Vault - OTP protected)
+│ │ ├── refer/page.tsx (3-Node Limit Referral Manager)
+│ │ └── tasks/[id]/page.tsx (Dynamic Task Workspace)
+├── src/components/
+│ └── FaceVerificationModule.tsx (Webcam Biometric Capture)
+└── src/lib/config.ts (Production API URL switch)
+C. Admin Frontend (Ops Control)
+frontend-admin/
+├── src/app/
+│ ├── page.tsx (Command Center Overview)
+│ ├── login/page.tsx (Admin-only secure access)
+│ ├── inventory/page.tsx (Task database management)
+│ ├── projects/
+│ │ ├── page.tsx (Project Mapping list)
+│ │ └── new/page.tsx (Domain Architect)
+│ ├── reviews/page.tsx (Quality Audit workspace)
+│ ├── payouts/page.tsx (Financial Sweep & Snapshot engine)
+│ ├── verification/page.tsx (Biometric Audit desk)
+│ └── nodes/page.tsx (Authority & Role management)
+└── src/lib/config.ts (Production API URL switch)
+5. Core System Logic
+I. The Referral Protocol ($50 Bonus)
+To ensure organic growth of high-quality contributors, we implemented a referral logic where:
+A user is limited to 3 successful referrals.
+The reward ($50.00) is only triggered when the recruit submits their first valid task.
+Double-Lock Check: The system verifies the count during signup and again inside the database transaction during payout to prevent race-condition exploits.
+II. Security: The Identity Vault
+Financial data is protected behind an "Identity Vault."
+Users cannot see or edit payout details (PayPal/Bank) without a secondary challenge.
+Verification: The system transmits a 6-digit OTP to the registered email. Field modification is only enabled upon valid OTP verification.
+III. Trusted Device Authentication
+To balance UX and security, the system uses a Device Fingerprinting approach:
+Upon the first login, an email OTP is mandatory.
+After verification, a nexus_device_trust token is issued as a secure cookie (30 days).
+Subsequent logins from that specific browser skip the OTP phase.
+IV. Task Architecture
+NexusGrid uses a JSON-based dynamic content loader.
+Preference Ranking: Uses a A/B side-by-side comparison UI.
+Fact Checking: Requires mandatory URL evidence submission.
+Validation: High-pay tasks (> $10) are automatically flagged for "Suspicious Speed" if submitted in under 60 seconds.
+6. Deployment & Hosting Strategy
+Infrastructure: The application is hosted in a cross-domain environment.
+Backend: Hosted on Render, utilizing a Node.js runtime. We use cron-job.org to ping the health-check endpoint every 14 minutes, preventing the free-tier instance from sleeping.
+Frontend: Hosted on Vercel with custom domain SSL certificates.
+Networking: Cross-Origin Resource Sharing (CORS) is strictly limited to authorized subdomains (nexugrid.site, ops.nexugrid.site) with credentials: true to allow secure session cookies.
+7. Conclusion
+NexusGrid demonstrates a comprehensive understanding of modern web security, database integrity, and user experience. It provides a viable, production-ready solution for the growing AI data-labeling industry.
+This is the **NexusGrid Master Documentation**. This README is designed to serve as the complete blueprint for your platform, covering every technical layer, security protocol, and deployment step we have implemented.
+
+---
+
+# 🌐 NexusGrid | AI Training & Human Data Ecosystem
+
+NexusGrid is a high-performance, professional-grade RLHF (Reinforcement Learning from Human Feedback) platform. It connects expert human contributors with AI models that require fine-tuning, fact-checking, and sentiment analysis.
+
+## 🏗 System Architecture
+
+The platform is built using a **Decoupled Monorepo Architecture**, where a single GitHub repository houses three distinct applications that communicate across different domains.
+
+1.  **Backend (The Core):** A Node.js Express server acting as the central nervous system.
+2.  **Worker Frontend (The Grid):** A Next.js application for contributors to perform tasks and earn.
+3.  **Admin Frontend (The Ops):** A Next.js application for platform owners to manage data, audits, and finance.
+
+---
+
+## 🛠 Tech Stack
+
+### **Backend**
+- **Language:** TypeScript (NodeNext resolution)
+- **Framework:** Express.js
+- **ORM:** Prisma (Mapping to Aiven MySQL)
+- **Authentication:** 
+    - JWT (JSON Web Tokens) stored in `httpOnly` secure cookies.
+    - Google OAuth 2.0 Integration.
+    - Custom "Trusted Device" logic.
+- **Email Engine:** Resend (Identity-based: Finance, Support, Security).
+
+### **Frontend (Worker & Admin)**
+- **Framework:** Next.js 15+ (App Router).
+- **Styling:** Tailwind CSS v4 (Theme-aware: Light/Dark mode support).
+- **Icons:** Lucide-React.
+- **State Management:** React Hooks (useState, useEffect, useCallback).
+- **Biometrics:** `react-webcam` for identity pulses.
+
+---
+
+## 💎 Core Features
+
+### **1. Task Architect & Engine**
+The platform supports four primary data-labeling types:
+- **Preference Ranking:** Comparing two AI responses and ranking them.
+- **Fact Checking:** Verifying claims against external research URLs.
+- **Text Classification:** Intent and topic categorization.
+- **Sentiment Analysis:** Detecting emotional nuances and sarcasm.
+
+### **2. The Referral Protocol**
+A highly incentivized recruitment system:
+- **Reward:** $50.00 instantly credited to the referrer upon the recruit's first successful task.
+- **Limit:** 3 recruits per node (to ensure quality over quantity).
+- **Tracking:** Implemented via a `referralBonusPaid` boolean flag in the database to prevent double-payouts.
+
+### **3. Identity Vault (Wallet)**
+A secure environment for managing earnings:
+- **Multi-Method:** Supports PayPal, Stripe, and Direct Bank Transfer (SWIFT).
+- **Security:** "Identity Vault" is locked. Modifying payout details requires a 6-digit OTP sent to the user's email via the Finance identity.
+- **Financial Sweep:** Admins can perform a "Snapshot" to freeze approved work and execute bulk payouts.
+
+### **4. Biometric Scan (Fraud Protection)**
+- Workers must capture a "Face Pulse" using their webcam.
+- Admins review these pulses in a dedicated "Biometric Audit" desk before authorizing grid access.
+
+---
+
+## 🔐 Security & Production Protocols
+
+### **Cross-Domain Session Management**
+Because the backend is on Render (`.onrender.com`) and the frontends are on Vercel (`.site`), we implemented a strict cross-site cookie protocol:
+- **SameSite:** `None`
+- **Secure:** `true` (Requires HTTPS)
+- **Credentials:** `true` (Allows axios to pass cookies)
+- **Trust Proxy:** Set to `1` on Express to handle Render’s load balancer.
+
+### **Trusted Device Logic**
+To reduce friction while maintaining security:
+1.  User logs in and verifies OTP via email.
+2.  The system issues a `nexus_device_trust` cookie valid for 30 days.
+3.  Next time the user logs in from the **same browser**, the OTP step is skipped.
+
+### **Google OAuth Bridge**
+- Allows instant enrollment and login.
+- Automatically marks accounts as `isEmailVerified: true`.
+- Integrated with the referral system to ensure bonuses are tracked even via social sign-on.
+
+---
+
+## 🚀 Deployment & Hosting
+
+### **Backend (Render)**
+- **Hosting:** Web Service (Free/Starter Tier).
+- **Root Directory:** `backend`
+- **Build Command:** `npm install && npx prisma generate && npm run build`
+- **Start Command:** `npm start`
+- **Keep-Alive:** Configured via `cron-job.org` to ping every 14 minutes to prevent instance sleeping.
+
+### **Frontends (Vercel)**
+- **Domains:** `nexugrid.site` (Worker) and `ops.nexugrid.site` (Admin).
+- **DNS:** Nameservers pointed to Vercel for automatic SSL (HTTPS) management.
+- **Env Vars:** 
+    - `NEXT_PUBLIC_API_URL`: Points to the Render backend.
+
+---
+
+## ⚙️ Environment Variables (.env)
+
+### **Backend**
+```env
+DATABASE_URL=      # Aiven MySQL Connection String
+JWT_SECRET=        # Secure string for signing tokens
+RESEND_API_KEY=    # API key from resend.com
+GOOGLE_CLIENT_ID=  # From Google Cloud Console
+GOOGLE_CLIENT_SECRET=
+PORT=5000
+NODE_ENV=production
+```
+
+### **Frontend**
+```env
+NEXT_PUBLIC_API_URL= # Your Render URL
+```
+
+---
+
+## 🛠 Maintenance Commands
+
+**Update Database Schema:**
+Whenever you change `schema.prisma`, run this in the backend folder:
+```bash
+npx prisma db push
+npx prisma generate
+```
+
+**Restart Production Build:**
+If a build fails due to a code fix:
+1.  `git add .`
+2.  `git commit -m "Fix description"`
+3.  `git push origin main`
+
+---
+
+## 📈 Future Scaling
+- **Priority Tier:** Automated base-rate increases for contributors with 4.5+ stars.
+- **Support Tickets:** Internal communication system for workers to dispute audit rejections.
+- **Regional Pricing:** Dynamic pay rates based on the contributor's country.
+
+---
+*Documentation Authored by: NexusGrid Core Development Team*
+*Last Updated: August 2026*frontend/src/app/login/page.tsx

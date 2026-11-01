@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* CRITICAL (Tailwind v4): v4 no longer reads darkMode: "class" from
+   tailwind.config.ts automatically for the `dark:` variant. We must
+   declare it here, or every `dark:` class in the app is dead code. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Load the JS config (v4 supports this for backwards compatibility,
+   e.g. for content globs / any future theme.extend values). */
+@config "../../tailwind.config.ts";
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+.dark {
+  --background: #050505;
+  --foreground: #ffffff;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+@keyframes scan {
+  0% { top: 0; opacity: 0; }
+  50% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.animate-scan {
+  animation: scan 2s linear infinite;
+}
